@@ -176,6 +176,10 @@ const generateServerCommand: CommandModule = {
                 describe: 'Forge version.',
                 type: 'string'
             })
+            .option('neoforge', {
+                describe: 'NeoForge version.',
+                type: 'string'
+            })
             .option('fabric', {
                 describe: 'Fabric version.',
                 type: 'string'
@@ -188,7 +192,9 @@ const generateServerCommand: CommandModule = {
         logger.debug(`Root set to ${argv.root}`)
         logger.debug(`Generating server ${argv.id} for Minecraft ${argv.version}.`,
             `\n\t└ Forge version: ${argv.forge}`,
-            `\n\t└ Fabric version: ${argv.fabric}`
+            `\n\t└ Fabric version: ${argv.fabric}`,
+            `\n\t└ NeoForge version: ${argv.neoforge}`
+
         )
 
         const minecraftVersion = new MinecraftVersion(argv.version as string)
@@ -206,10 +212,19 @@ const generateServerCommand: CommandModule = {
                 logger.error('┃                                                         ┃')
                 logger.error('┃    Forge 1.20.3+ removed support for --fml.modLists.    ┃')
                 logger.error('┃  Helios Launcher can no longer load mods through Forge. ┃')
-                logger.error('┃      Please use Fabric or await NeoForged Support.      ┃')
+                logger.error('┃             Please use Fabric or NeoForge.              ┃')
                 logger.error('┃                                                         ┃')
                 logger.error('┃                     !!  WARNING !!                      ┃')
                 logger.error('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
+            }
+        }
+
+        if (argv.neoforge != null) {
+            if (VersionUtil.isPromotionVersion(argv.neoforge as string)) {
+                logger.debug(`Resolving ${argv.neoforge as string} NeoForge Version..`)
+                const version = await VersionUtil.getPromotedNeoForgeVersion(minecraftVersion, argv.neoforge as string)
+                logger.debug(`NeoForge version set to ${version}`)
+                argv.neoforge = version
             }
         }
 
@@ -228,7 +243,8 @@ const generateServerCommand: CommandModule = {
             minecraftVersion,
             {
                 forgeVersion: argv.forge as string,
-                fabricVersion: argv.fabric as string
+                fabricVersion: argv.fabric as string,
+                neoforgeVersion: argv.neoforge as string
             }
         )
     }
@@ -264,15 +280,25 @@ const generateServerCurseForgeCommand: CommandModule = {
         // TODO Support fabric
         const forgeModLoader = modpackManifest.minecraft.modLoaders.find(({ id }) => id.toLowerCase().startsWith('forge-'))
         const forgeVersion = forgeModLoader != null ? forgeModLoader.id.substring('forge-'.length) : undefined
-        logger.debug(`Forge version set to ${forgeVersion}`)
+
+        const neoforgeModLoader = modpackManifest.minecraft.modLoaders.find(({ id }) => id.toLowerCase().startsWith('neoforge-'))
+        const neoforgeVersion = neoforgeModLoader != null ? neoforgeModLoader.id.substring('neoforge-'.length) : undefined
+
+        if (forgeModLoader)
+            logger.debug(`Forge version set to ${forgeVersion}`)
+        if (neoforgeModLoader)
+            logger.debug(`NeoForge version set to ${neoforgeVersion}`)
 
         const serverStruct = new ServerStructure(argv.root as string, getBaseURL(), false, false)
+
+
         const createServerResult = await serverStruct.createServer(
             argv.id as string,
             minecraftVersion,
             {
                 version: modpackManifest.version,
-                forgeVersion
+                forgeVersion: forgeVersion,
+                neoforgeVersion: neoforgeVersion
             }
         )
 

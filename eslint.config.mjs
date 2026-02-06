@@ -1,18 +1,22 @@
 // @ts-check
 
 import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
-import stylistic from '@stylistic/eslint-plugin';
+import stylisticTs from '@stylistic/eslint-plugin-ts';
 
-export default defineConfig(
+export default tseslint.config(
   {
     ignores: ['**/dist/**', 'node_modules', 'eslint.config.mjs'],
   },
   eslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
-  tseslint.configs.stylisticTypeChecked,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
+    files: ['**/*.ts', '**/*.mts', '**/*.cts', '**/*.tsx'],
+    plugins: {
+      '@stylistic/ts': stylisticTs,
+      '@typescript-eslint': tseslint.plugin,
+    },
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -20,18 +24,11 @@ export default defineConfig(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-  {
-    files: ['**/*.ts', '**/*.mts', '**/*.cts', '**/*.tsx'],
-    plugins: {
-      '@stylistic': stylistic,
-      '@typescript-eslint': tseslint.plugin,
-    },
     rules: {
-      '@stylistic/semi': ['error', 'never'],
-      '@stylistic/quotes': ['error', 'single'],
-      '@stylistic/indent': ['error', 4],
-      '@stylistic/member-delimiter-style': ['error', {
+      '@stylistic/ts/semi': ['error', 'never'],
+      '@stylistic/ts/quotes': ['error', 'single'],
+      '@stylistic/ts/indent': ['error', 4],
+      '@stylistic/ts/member-delimiter-style': ['error', {
         multiline: {
           delimiter: 'none',
           requireLast: false

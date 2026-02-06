@@ -11,9 +11,7 @@ export class LoggerUtil {
                 format.label(),
                 format.colorize(),
                 format.label({ label }),
-                format.printf(infoUnknown => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const info = infoUnknown as {[key: string | symbol]: any}
+                format.printf(info => {
                     if(info[SPLAT]) {
                         if(info[SPLAT].length === 1 && info[SPLAT][0] instanceof Error) {
                             const err: Error = info[SPLAT][0]
